@@ -30,7 +30,7 @@ class DataFrameResult(NamedTuple):
 db = duckdb.connect(database=":memory:")
 db.execute("install 'httpfs'; load 'httpfs'; set s3_region='eu-central-1';")
 
-url_template = "s3://tt-osm-changesets/full_by_year/{year}.parquet"
+url_template = "s3://tt-osm-changesets/full_by_year/{year}.zstd.parquet"
 
 
 def get_delta(current_value: int, previous_value: int | None) -> str | None:
