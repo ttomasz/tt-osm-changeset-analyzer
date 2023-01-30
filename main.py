@@ -142,10 +142,14 @@ LIMIT 15
 
 st.markdown("""
 # OpenStreetMap changesets
+
 This Streamlit app queries remote Parquet files with info from changeset dump downloaded from planet.osm.org.
-Thanks  to DuckDB we can query files hosted on S3 storage without having to download everything (~7 GB).
+
+Thanks to DuckDB we can query files hosted on S3 storage without having to download everything (~7 GB).
 Although for running larger analyses this is a better course of action since it's order of magnitude faster.
 With local files DuckDB can query all the data in seconds.
+
+GitHub repo: https://github.com/ttomasz/tt-osm-changeset-analyzer
 
 **Since changesets can be opened in one year and closed in another everywhere we assume that `year`
 is the year the changeset was opened in.**
