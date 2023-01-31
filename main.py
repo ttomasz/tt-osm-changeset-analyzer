@@ -201,9 +201,9 @@ stats = stats_over_years(data_url_template)
 stats.df.columns = stats.df.columns.map(lambda x: str(x).replace("_", " ").title())
 with st.expander("SQL query", expanded=False):
     st.code(stats.query, language="sql")
-st.line_chart(data=stats.df, x="year", y="number_of_changes".replace("_", " ").title())
-st.line_chart(data=stats.df, x="year", y="number_of_changesets".replace("_", " ").title())
-st.line_chart(data=stats.df, x="year", y="number_of_unique_users".replace("_", " ").title())
+st.line_chart(data=stats.df, x="year".title(), y="number_of_changes".replace("_", " ").title())
+st.line_chart(data=stats.df, x="year".title(), y="number_of_changesets".replace("_", " ").title())
+st.line_chart(data=stats.df, x="year".title(), y="number_of_unique_users".replace("_", " ").title())
 
 # year = st.slider("Select year for analysis:", min_value=2005, max_value=2023, value=2023, step=1)
 year_options = tuple(range(2005, 2024))
