@@ -112,7 +112,7 @@ LIMIT 15
 
 
 def new_users(year: int, url_template: str) -> DataFrameResult:
-    paths_for_previous_years = paths_for_years(2005, year, url_template)
+    paths_for_previous_years = paths_for_years(2005, year - 1, url_template)
     sep = ",\n" + " " * 8
     query = f"""
 WITH
