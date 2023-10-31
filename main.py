@@ -54,6 +54,7 @@ SELECT
         WHEN created_by LIKE 'JOSM%' THEN 'JOSM'
         WHEN created_by LIKE 'Level0%' THEN 'Level0'
         WHEN created_by LIKE 'StreetComplete%' THEN 'StreetComplete'
+        WHEN created_by LIKE 'MapComplete%' THEN 'MapComplete'
         WHEN created_by LIKE 'RapiD%' THEN 'RapiD'
         WHEN created_by LIKE 'Rapid%' THEN 'RapiD'
         WHEN created_by LIKE 'Potlach%' THEN 'Potlach'
