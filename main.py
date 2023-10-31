@@ -11,12 +11,12 @@ from utils import get_delta, paths_for_years
 # ------------------------------------------------------------------------------------------------------
 # functions
 # ------------------------------------------------------------------------------------------------------
-@st.experimental_memo
+@st.cache_data
 def fetch_one(query: str) -> tuple:
     return db.execute(query).fetchone()  # type: ignore
 
 
-@st.experimental_memo
+@st.cache_data
 def fetch_df(query: str) -> DataFrameResult:
     result = db.execute(query)
     return DataFrameResult(query, result.arrow().to_pandas(types_mapper=pd.ArrowDtype))
