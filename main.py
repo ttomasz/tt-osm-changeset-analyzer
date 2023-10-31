@@ -49,30 +49,33 @@ def most_popular_editors(year: int, url_template: str) -> DataFrameResult:
     query = f"""
 SELECT
     CASE
-        WHEN created_by like 'iD%' then 'iD'
-        WHEN created_by like 'JOSM%' then 'JOSM'
-        WHEN created_by like 'Level0%' then 'Level0'
-        WHEN created_by like 'StreetComplete%' then 'StreetComplete'
-        WHEN created_by like 'RapiD%' then 'RapiD'
-        WHEN created_by like 'Potlach%' then 'Potlach'
-        WHEN created_by like 'Potlatch%' then 'Potlatch'
-        WHEN created_by like 'Go Map!!%' then 'Go Map!!'
-        WHEN created_by like 'Merkaartor%' then 'Merkaartor'
-        WHEN created_by like 'OsmAnd%' then 'OsmAnd'
-        WHEN created_by like 'MAPS.ME%' then 'MAPS.ME'
-        WHEN created_by like 'Vespucci%' then 'Vespucci'
-        WHEN created_by like 'Organic Maps%' then 'Organic Maps'
-        WHEN created_by like 'ArcGIS Editor%' then 'ArcGIS Editor'
-        WHEN created_by like 'bulk_upload.py%' then 'bulk_upload.py'
-        WHEN created_by like 'reverter%' then 'reverter'
-        WHEN created_by like 'Every_Door%' then 'EveryDoor'
-        WHEN created_by like 'osmtools%' then 'osmtools'
-        WHEN created_by like 'osmapi%' then 'osmapi'
-        WHEN created_by like 'rosemary%' then 'rosemary'
-        WHEN created_by like 'Globe%' then 'Globe'
-        WHEN created_by like 'PythonOsmApi%' then 'PythonOsmApi'
-        WHEN created_by like 'bot-source-cadastre.py%' then 'bot-source-cadastre.py'
-        WHEN created_by like 'upload.py%' then 'upload.py'
+        WHEN created_by LIKE 'iD%' THEN 'iD'
+        WHEN created_by LIKE 'JOSM%' THEN 'JOSM'
+        WHEN created_by LIKE 'Level0%' THEN 'Level0'
+        WHEN created_by LIKE 'StreetComplete%' THEN 'StreetComplete'
+        WHEN created_by LIKE 'RapiD%' THEN 'RapiD'
+        WHEN created_by LIKE 'Rapid%' THEN 'RapiD'
+        WHEN created_by LIKE 'Potlach%' THEN 'Potlach'
+        WHEN created_by LIKE 'Potlatch%' THEN 'Potlatch'
+        WHEN created_by LIKE 'Go Map!!%' THEN 'Go Map!!'
+        WHEN created_by LIKE 'Merkaartor%' THEN 'Merkaartor'
+        WHEN created_by LIKE 'OsmAnd%' THEN 'OsmAnd'
+        WHEN created_by LIKE 'MAPS.ME%' THEN 'MAPS.ME'
+        WHEN created_by LIKE 'Vespucci%' THEN 'Vespucci'
+        WHEN created_by LIKE 'Organic Maps%' THEN 'Organic Maps'
+        WHEN created_by LIKE 'ArcGIS Editor%' THEN 'ArcGIS Editor'
+        WHEN created_by LIKE 'bulk_upload.py%' THEN 'bulk_upload.py'
+        WHEN created_by LIKE 'reverter%' THEN 'reverter'
+        WHEN created_by LIKE 'osm-revert%' THEN 'osm-revert'
+        WHEN created_by LIKE 'Every_Door%' THEN 'EveryDoor'
+        WHEN created_by LIKE 'osmtools%' THEN 'osmtools'
+        WHEN created_by LIKE 'osmapi%' THEN 'osmapi'
+        WHEN created_by LIKE 'rosemary%' THEN 'rosemary'
+        WHEN created_by LIKE 'Globe%' THEN 'Globe'
+        WHEN created_by LIKE 'PythonOsmApi%' THEN 'PythonOsmApi'
+        WHEN created_by LIKE 'bot-source-cadastre.py%' THEN 'bot-source-cadastre.py'
+        WHEN created_by LIKE 'upload.py%' THEN 'upload.py'
+        WHEN created_by LIKE 'osm-budynki-orto-import%' THEN 'osm-budynki-orto-import'
         ELSE coalesce(created_by, '<unknown>')
     END editor,
     sum(num_changes)::bigint number_of_object_changes, -- cast to bigint makes formatting later easier
@@ -139,7 +142,7 @@ GROUP BY 1
     return fetch_df(query)
 
 
-def stats_over_years(url_template: str) -> DataFrameResult:
+def stats_over_years(url_template: str, max_year: int) -> DataFrameResult:
     sep = ",\n" + " " * 4
     query = f"""
 SELECT
@@ -148,7 +151,7 @@ SELECT
     count(*) as number_of_changesets,
     count(distinct uid) as number_of_unique_users
 FROM parquet_scan([
-    {sep.join(paths_for_years(2005, 2022, url_template))}
+    {sep.join(paths_for_years(2005, max_year, url_template))}
 ], FILENAME = 1)
 GROUP BY 1
 ORDER BY 1
@@ -177,7 +180,7 @@ This Streamlit app queries remote Parquet files with info from
 dump downloaded from [planet.osm.org](https://planet.osm.org).
 I described conversion process here: https://ttomasz.github.io/2023-01-30/spark-read-xml
 
-Thanks to DuckDB we can query files hosted on S3 storage without having to download everything (~7 GB).
+Thanks to DuckDB we can query files hosted on S3 storage without having to download everything (~13,4 GB).
 Although for running larger analyses this is a better course of action since it's order of magnitude faster.
 With local files DuckDB can query all the data in seconds.
 
@@ -197,7 +200,8 @@ st.metric("Minimum changeset opening datetime", dataset_stats.min_opened_date.is
 st.metric("Maximum changeset opening datetime", dataset_stats.max_opened_date.isoformat())
 
 st.write("Let's see some charts")
-stats = stats_over_years(data_url_template)
+max_year = dataset_stats.max_opened_date.year
+stats = stats_over_years(url_template=data_url_template, max_year=max_year)
 stats.df.columns = stats.df.columns.map(lambda x: str(x).replace("_", " ").title())
 with st.expander("SQL query", expanded=False):
     st.code(stats.query, language="sql")
@@ -206,7 +210,7 @@ st.line_chart(data=stats.df, x="year".title(), y="number_of_changesets".replace(
 st.line_chart(data=stats.df, x="year".title(), y="number_of_unique_users".replace("_", " ").title())
 
 # year = st.slider("Select year for analysis:", min_value=2005, max_value=2023, value=2023, step=1)
-year_options = tuple(range(2005, 2024))
+year_options = tuple(range(2005, max_year + 1))
 selected_year = st.selectbox("Select year for analysis:", options=year_options, index=len(year_options) - 1)
 previous_year = selected_year - 1 if selected_year > 2005 else None
 
