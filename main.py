@@ -1,6 +1,7 @@
 import os
 
 import duckdb
+import pandas as pd
 import streamlit as st
 
 from datastructures import StatsForYear, DataFrameResult, DatasetStats
@@ -18,7 +19,7 @@ def fetch_one(query: str) -> tuple:
 @st.experimental_memo
 def fetch_df(query: str) -> DataFrameResult:
     result = db.execute(query)
-    return DataFrameResult(query, result.df())
+    return DataFrameResult(query, result.arrow().to_pandas(types_mapper=pd.ArrowDtype))
 
 
 def min_max_timestamps(url_template: str) -> DatasetStats:
@@ -164,7 +165,14 @@ ORDER BY 1
 # ------------------------------------------------------------------------------------------------------
 # create in-memory duckdb database 🦆
 db = duckdb.connect(database=":memory:")
-db.execute("install 'httpfs'; load 'httpfs'; set s3_region='eu-central-1';")
+db.execute("""
+    install 'httpfs';
+    load 'httpfs';
+    set s3_region='eu-central-1';
+    set enable_http_metadata_cache=true;
+    set enable_object_cache=true;
+    set preserve_insertion_order=false;
+""")
 
 data_url_template = os.environ.get("url_template", "s3://tt-osm-changesets/full_by_year/{year}.zstd.parquet")
 
